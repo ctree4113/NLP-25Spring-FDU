@@ -1,0 +1,49 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.2.15 Chrome/134.0.6998.205 Electron/35.2.1 Safari/537.36" version="26.2.15">
+  <diagram name="Page-1" id="tqNoCmG_KPZSjwTlXW9H">
+    <mxGraphModel dx="1106" dy="730" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="150" pageHeight="90" math="1" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="IsYYNjOj3wPygnvutGDe-115" value="" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="85" y="7" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-59" value="" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="101" y="41" width="193" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-62" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));&quot;&gt;Pre-trained&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Weights&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;i style=&quot;vertical-align: super; background-color: transparent; color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));&quot;&gt;`\mathbf{W}_0 \in \mathbb{R}^{n \times m}`&amp;nbsp;&lt;/i&gt;&lt;/div&gt;" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;fillColor=#1ba1e2;fontColor=#ffffff;strokeColor=#006EAF;" parent="1" vertex="1">
+          <mxGeometry x="4" y="61" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-64" value="Learnable" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0a30a;fontColor=#000000;strokeColor=#BD7000;" parent="1" vertex="1">
+          <mxGeometry x="155" y="14.5" width="60" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-67" value="Frozen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ba1e2;fontColor=#ffffff;strokeColor=#006EAF;" parent="1" vertex="1">
+          <mxGeometry x="95" y="14.5" width="50" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-83" value="`B \in \mathbb{R} ^ {r \times m}`" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f0a30a;fontColor=#000000;strokeColor=#BD7000;" parent="1" vertex="1">
+          <mxGeometry x="109" y="107.75" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-84" value="`A \in \mathbb{R} ^{n \times r}`" style="shape=trapezoid;perimeter=trapezoidPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f0a30a;fontColor=#000000;strokeColor=#BD7000;direction=west;" parent="1" vertex="1">
+          <mxGeometry x="109" y="50" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-108" value="`\Delta W = W_0 \odot (AB)`" style="text;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="132" y="141" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-110" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;i style=&quot;vertical-align: super; background-color: transparent; color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));&quot;&gt;&lt;br&gt;&lt;/i&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;i style=&quot;vertical-align: super; background-color: transparent; color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));&quot;&gt;`\mathbf{W}_0 \in \mathbb{R}^{n \times m}`&amp;nbsp;&lt;/i&gt;&lt;/div&gt;" style="shape=ext;double=1;rounded=1;whiteSpace=wrap;html=1;fillColor=#1ba1e2;fontColor=#ffffff;strokeColor=#006EAF;" parent="1" vertex="1">
+          <mxGeometry x="209" y="57.75" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-111" value="" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;direction=north;" parent="1" vertex="1">
+          <mxGeometry x="130.5" y="80" width="47" height="11" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-112" value="`r`" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="134" y="91" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-113" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;`odot`&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="157" y="82.75" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="IsYYNjOj3wPygnvutGDe-117" value="`+`" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;" parent="1" vertex="1">
+          <mxGeometry x="72" y="91" width="40" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
