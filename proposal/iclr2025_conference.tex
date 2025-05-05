@@ -1,0 +1,144 @@
+\documentclass[10pt,letterpaper]{article}
+
+\usepackage{iclr2025_conference,times}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{caption}
+\usepackage{natbib}
+\usepackage{booktabs}
+\usepackage{multirow}
+\iclrfinalcopy
+
+\pagestyle{plain}
+
+\title{KnowHiRA:\\Knowledge-aware Hadamard-integrated\\Rank Adaptation for Efficient\\Commonsense Reasoning\\(Proposal)}
+
+\author{
+    Yi Cui\\
+    \And
+    Yihe Pan\\
+    \And
+    XuanYi Yang\\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Parameter-efficient fine-tuning (PEFT) is crucial for adapting large language models while minimizing computational costs. We propose \textsc{KnowHiRA}, a novel PEFT method that enhances Hadamard High-Rank Adaptation (\textsc{HiRA}) with knowledge-aware mechanisms from Knowledge-aware Singular-value Adaptation (\textsc{KaSA}). Our approach integrates SVD-based knowledge structure guidance with \textsc{HiRA}'s high-rank Hadamard updates through four innovations: knowledge-guided Hadamard updates, adaptive knowledge gating, orthogonal parameter regularization, and spectrum-aware initialization. We will evaluate our method on commonsense reasoning tasks using the Commonsense-170K dataset, expecting improved performance compared to existing approaches.
+\end{abstract}
+
+\section{Introduction}
+
+Large language models have transformed natural language processing, but their adaptation remains computationally expensive. Parameter-efficient fine-tuning (PEFT) addresses this challenge by updating only a small subset of parameters. Two recent methods exhibit complementary strengths:
+
+\begin{itemize}
+    \item \textbf{Hadamard High-Rank Adaptation (\textsc{HiRA})}~\cite{huang2025hira} achieves expressive adaptations through multiplicative updates ($\Delta W = W_0 \odot (AB)$).
+    
+    \item \textbf{Knowledge-aware Singular-value Adaptation (\textsc{KaSA})}~\cite{wang2024kasa} aligns updates with model knowledge using singular value decomposition (SVD).
+\end{itemize}
+
+While \textsc{HiRA} provides high expressivity but lacks knowledge guidance, \textsc{KaSA} offers knowledge alignment but is constrained by low-rank updates. We propose \textsc{KnowHiRA}, which enhances \textsc{HiRA} with knowledge-aware mechanisms inspired by \textsc{KaSA}.
+
+Our approach introduces a cohesive framework that builds on \textsc{HiRA}'s foundation. At its core, we develop \textbf{Knowledge-guided Hadamard Updates} that integrate SVD-based knowledge structure with \textsc{HiRA}'s multiplicative updates. We enhance this with \textbf{Adaptive Knowledge Gating} to dynamically control the influence of knowledge structure across different model components. To further improve adaptation quality, we employ \textbf{Orthogonal Parameter Regularization} that maximizes effective rank while maintaining parameter efficiency, and design a \textbf{Spectrum-aware Initialization} strategy that leverages singular value patterns for faster convergence.
+
+We will evaluate our method on commonsense reasoning tasks using the Commonsense-170K dataset~\cite{llm-adapters}, following \textsc{HiRA}'s evaluation framework. Our approach aims to advance PEFT methods for tasks requiring both expressivity and knowledge alignment.
+
+\section{Method}
+
+\subsection{Background}
+
+Parameter-efficient fine-tuning methods seek to adapt pre-trained models by updating only a small subset of parameters. Two recent advances are particularly relevant to our work:
+
+\textbf{Hadamard High-Rank Adaptation (\textsc{HiRA})}~\cite{huang2025hira} introduces a multiplicative update strategy using Hadamard products:
+\begin{equation}
+    W = W_0 + W_0 \odot (AB)
+\end{equation}
+where $W_0$ is the pre-trained weight matrix, $A \in \mathbb{R}^{d \times r}$, $B \in \mathbb{R}^{r \times k}$, and $\odot$ denotes the Hadamard product. This formulation enables high-rank adaptations despite having only $r(d+k)$ trainable parameters. While expressive, \textsc{HiRA}'s updates do not explicitly leverage the knowledge structure of pre-trained weights.
+
+\textbf{Knowledge-aware Singular-value Adaptation (\textsc{KaSA})}~\cite{wang2024kasa} utilizes singular value decomposition (SVD) to target adaptations based on the model's inherent knowledge structure:
+\begin{equation}
+    W = U(\Sigma + D)V^T
+\end{equation}
+where $W_0 = U\Sigma V^T$ is the SVD of the pre-trained weights, and $D$ is a trainable diagonal matrix. \textsc{KaSA} aligns updates with the most important directions in the parameter space but is limited by its additive and low-rank nature.
+
+\subsection{Our Approach: Knowledge-aware Hadamard-integrated Rank Adaptation}
+
+We propose \textsc{KnowHiRA}, a novel approach that enhances \textsc{HiRA}'s high-rank adaptation capability with knowledge-aware mechanisms inspired by \textsc{KaSA}. Our method integrates SVD-based knowledge guidance with Hadamard product updates through four key innovations:
+
+\subsubsection{Knowledge-guided Hadamard Updates}
+
+We reformulate \textsc{HiRA}'s update by incorporating knowledge from the SVD of pre-trained weights:
+\begin{equation}
+    \Delta W = W_0 \odot (A \cdot G_{\Sigma} \cdot B)
+\end{equation}
+where $G_{\Sigma} \in \mathbb{R}^{r \times r}$ is a knowledge-guided gating matrix derived from the singular values of $W_0$.
+
+\subsubsection{Adaptive Knowledge Gating}
+
+We introduce a learnable gating mechanism that dynamically controls the influence of knowledge structure:
+\begin{equation}
+    G_{\Sigma} = \text{Diag}(\sigma_{\text{norm}} \odot \text{sigmoid}(g))
+\end{equation}
+where $\sigma_{\text{norm}}$ is the normalized vector of singular values and $g \in \mathbb{R}^r$ is a trainable vector. This allows the model to adaptively emphasize directions most relevant for the target task.
+
+\subsubsection{Orthogonal Parameter Regularization}
+
+To maximize the effective rank of our updates, we introduce a regularization term that encourages orthogonality in the adaptation matrices:
+\begin{equation}
+    L_{\text{ortho}} = \|A^T A - I\|_F^2 + \|B B^T - I\|_F^2
+\end{equation}
+Our final training objective becomes:
+\begin{equation}
+    L = L_{\text{task}} + \lambda_{\text{ortho}} L_{\text{ortho}}
+\end{equation}
+
+\subsubsection{Spectrum-aware Initialization}
+
+In fine-tuning, initialization can significantly impact convergence and final performance. We propose a spectrum-aware initialization strategy that leverages the singular value distribution of pre-trained weights to guide the starting point of adaptation parameters:
+
+\begin{equation}
+    A_{init} = \text{Kaiming}(d, r) \cdot f(\Sigma), \quad B_{init} \approx 0, \quad g_{init} < 0
+\end{equation}
+
+Here, $f(\Sigma)$ is a scaling function based on the singular value distribution that ensures initial updates respect the importance hierarchy in the model's parameter space. This has two key benefits:
+
+\begin{itemize}
+    \item \textbf{Knowledge-aligned starting point}: By scaling initialization based on singular values, we ensure adaptation begins with awareness of the model's knowledge structure.
+    \item \textbf{Improved training dynamics}: This initialization reduces the need for early exploration of parameter space, leading to faster convergence and better final performance.
+\end{itemize}
+
+Practically, we initialize $A$ using a modified Kaiming distribution scaled by singular values, $B$ with small values near zero, and gating parameters $g$ with small negative values (making initial gates near-zero) to allow gradual learning of knowledge influence.
+
+Through these innovations, \textsc{KnowHiRA} achieves adaptations that are both highly expressive (leveraging \textsc{HiRA}'s high-rank capability) and knowledge-aligned (incorporating \textsc{KaSA}'s structural guidance).
+
+\section{Proposed Experimental Setup}
+
+To evaluate our approach, we will adopt an experimental framework similar to that used in the \textsc{HiRA} paper~\cite{huang2025hira}, focusing on commonsense reasoning tasks.
+
+\subsection{Datasets and Evaluation}
+
+We will utilize the Commonsense-170K dataset~\cite{llm-adapters} for fine-tuning, which contains diverse commonsense knowledge questions covering social norms, physical properties, and causal relations. For evaluation, we will follow the \textsc{HiRA} benchmark suite including Social IQA, PIQA, BoolQ, HellaSwag, WinoGrande, ARC-Easy/Challenge, and OpenbookQA. 
+
+We will maintain strict comparability with \textsc{HiRA} by using identical evaluation protocols, prompt templates, and metrics.
+
+\subsection{Comparisons}
+
+Our primary goal is to demonstrate the improvements of \textsc{KnowHiRA} over \textsc{HiRA}~\cite{huang2025hira}. We will implement our method using pre-trained language models in the 7B-13B parameter range and perform direct comparisons with \textsc{HiRA} on the same models and datasets. For completeness, we will also include results from other PEFT methods (e.g., LoRA~\cite{hu2021lora}, \textsc{KaSA}~\cite{wang2024kasa}, etc.) as reference points.
+
+Through these experiments, we aim to show that \textsc{KnowHiRA} effectively combines the high-rank adaptation capabilities of \textsc{HiRA} with knowledge-aware mechanisms, resulting in improved performance on commonsense reasoning tasks.
+
+\section{Conclusion}
+
+We have proposed \textsc{KnowHiRA}, a novel parameter-efficient fine-tuning method that enhances \textsc{HiRA} with knowledge-aware mechanisms from \textsc{KaSA}. By integrating singular value decomposition guidance with Hadamard product updates, our approach aims to achieve adaptations that are both highly expressive and aligned with the model's inherent knowledge structure. We expect \textsc{KnowHiRA} to advance the state-of-the-art in parameter-efficient fine-tuning for commonsense reasoning tasks.
+
+\bibliographystyle{iclr2025_conference}
+\bibliography{iclr2025_conference}
+
+\end{document}
