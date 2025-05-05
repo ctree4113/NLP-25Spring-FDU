@@ -1,0 +1,25 @@
+# DS_store
+.DS_Store
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+
+# Tex
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.log
+*.out
+*.pdf
+
+# Texpad
+.texpadtmp
+
+# draw.io
+*.drawio.bkp
