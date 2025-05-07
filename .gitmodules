@@ -1,0 +1,6 @@
+[submodule "hira"]
+	path = hira
+	url = https://github.com/hqsiswiliam/hira
+[submodule "KaSA"]
+	path = KaSA
+	url = https://github.com/juyongjiang/KaSA
