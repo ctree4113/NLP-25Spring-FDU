@@ -4,3 +4,6 @@
 [submodule "KaSA"]
 	path = KaSA
 	url = https://github.com/juyongjiang/KaSA
+[submodule "peft"]
+	path = peft
+	url =https://github.com/huggingface/peft
