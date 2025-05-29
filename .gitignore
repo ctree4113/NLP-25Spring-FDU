@@ -23,3 +23,6 @@ __pycache__
 
 # draw.io
 *.drawio.bkp
+
+# results
+results_knowhira_gptneo13b/
