@@ -30,7 +30,9 @@ def get_peft_model_state_dict(model, state_dict=None, adapter_name="default"):
     config = model.peft_config[adapter_name]
     if state_dict is None:
         state_dict = model.state_dict()
-    if config.peft_type in (PeftType.LORA):
+    
+    # KnowHiRA和LoRA使用相同的保存逻辑，因为KnowHiRA基于LoRA架构
+    if config.peft_type in (PeftType.LORA, PeftType.KNOWHIRA):
         # to_return = lora_state_dict(model, bias=model.peft_config.bias)
         # adapted from `https://github.com/microsoft/LoRA/blob/main/loralib/utils.py`
         # to be used directly with the state dict which is necessary when using DeepSpeed or FSDP
@@ -92,7 +94,8 @@ def set_peft_model_state_dict(model, peft_model_state_dict, adapter_name="defaul
     else:
         state_dict = peft_model_state_dict
 
-    if config.peft_type in (PeftType.LORA):
+    # KnowHiRA和LoRA使用相同的加载逻辑
+    if config.peft_type in (PeftType.LORA, PeftType.KNOWHIRA):
         peft_model_state_dict = {}
         for k, v in state_dict.items():
             if "lora_" in k:

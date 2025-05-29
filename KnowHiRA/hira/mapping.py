@@ -23,6 +23,7 @@ from .peft_model import (
 from .tuners import (
     AdaptionPromptConfig,
     LoraConfig,
+    KnowHiRAConfig,
     PrefixTuningConfig,
     PromptEncoderConfig,
     PromptTuningConfig,
@@ -43,6 +44,7 @@ PEFT_TYPE_TO_CONFIG_MAPPING = {
     "PREFIX_TUNING": PrefixTuningConfig,
     "P_TUNING": PromptEncoderConfig,
     "LORA": LoraConfig,
+    "KNOWHIRA": KnowHiRAConfig,
 }
 
 

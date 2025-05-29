@@ -2,10 +2,8 @@ import csv
 import re
 from functools import reduce
 from glob import glob
-import jsonlines
 import numpy as np
 from dotenv import load_dotenv
-import evaluate
 import os
 import json
 
@@ -112,5 +110,3 @@ with open(f'{eval_folder_path}/{type_name}_results_all.csv', 'w') as file:
             row.append(all_data[folder_name].get(eval_task,-1))
         avg_val = reduce(lambda x,y: x+y, row[1:])/len(row[1:])
         writer.writerow(row+[avg_val])
-
-

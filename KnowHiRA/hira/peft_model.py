@@ -31,6 +31,7 @@ from transformers.utils import PushToHubMixin
 from .tuners import (
     AdaptionPromptModel,
     LoraModel,
+    KnowHiRAModel,
     PrefixEncoder,
     PromptEmbedding,
     PromptEncoder,
@@ -52,6 +53,7 @@ from .utils import (
 
 PEFT_TYPE_TO_MODEL_MAPPING = {
     PeftType.LORA: LoraModel,
+    PeftType.KNOWHIRA: KnowHiRAModel,
     PeftType.PROMPT_TUNING: PromptEmbedding,
     PeftType.P_TUNING: PromptEncoder,
     PeftType.PREFIX_TUNING: PrefixEncoder,
@@ -1159,7 +1161,6 @@ class PeftModelForTokenClassification(PeftModel):
                 sequence_output = self.base_model.dropout(sequence_output)
             logits = self.base_model.get_submodule(self.cls_layer_name)(sequence_output)
 
-            loss = None
             loss = None
             if labels is not None:
                 loss_fct = CrossEntropyLoss()

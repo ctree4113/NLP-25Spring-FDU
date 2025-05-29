@@ -19,6 +19,24 @@
 
 from .adaption_prompt import AdaptionPromptConfig, AdaptionPromptModel
 from .lora import LoraConfig, LoraModel
+from .knowhira import KnowHiRAConfig, KnowHiRAModel
 from .p_tuning import PromptEncoder, PromptEncoderConfig, PromptEncoderReparameterizationType
 from .prefix_tuning import PrefixEncoder, PrefixTuningConfig
 from .prompt_tuning import PromptEmbedding, PromptTuningConfig, PromptTuningInit
+
+__all__ = [
+    "AdaptionPromptConfig",
+    "AdaptionPromptModel",
+    "LoraConfig",
+    "LoraModel",
+    "KnowHiRAConfig",
+    "KnowHiRAModel",
+    "PromptEncoder",
+    "PromptEncoderConfig",
+    "PromptEncoderReparameterizationType",
+    "PrefixEncoder",
+    "PrefixTuningConfig",
+    "PromptEmbedding",
+    "PromptTuningConfig",
+    "PromptTuningInit",
+]
