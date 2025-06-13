@@ -47,14 +47,9 @@ The method introduces only a small number of additional parameters (specifically
 KnowHiRA requires Python 3.10 or higher and is built on PyTorch. The implementation leverages the Transformers library for model loading and the PEFT library for efficient training.
 
 ```bash
-# Create a new conda environment
-conda create -n knowhira python=3.10
-conda activate knowhira
-
-# Install core dependencies
-pip install torch==2.2.1 transformers==4.41.1
-pip install datasets accelerate peft bitsandbytes
-pip install numpy scipy scikit-learn
+# Create conda environment from env.yml
+conda env create -f env.yml
+conda activate hira
 ```
 
 ### Quick Start
@@ -211,38 +206,3 @@ python analyze_results.py
 # Evaluate with fixed decoding parameters
 bash run_fixed_evaluation.sh
 ```
-
-## Project Structure
-
-The KnowHiRA implementation is organized into several key components:
-
-- **`hira/tuners/knowhira.py`**: Core implementation of the KnowHiRA adaptation mechanism
-- **`train_knowhira.py`**: Main training script with comprehensive configuration options
-- **`models/get_models.py`**: Model loading and configuration utilities
-- **`dataset/`**: Data processing and formatting utilities
-- **`customized_trainer/`**: Training infrastructure with KnowHiRA-specific optimizations
-
-## Contributing
-
-We welcome contributions to the KnowHiRA project. Please ensure that any contributions follow the established code structure and include appropriate documentation. For substantial changes, please open an issue first to discuss the proposed modifications.
-
-## Citation
-
-If you find KnowHiRA useful in your research, please cite our work:
-
-```bibtex
-@article{knowhira2025,
-  title={KnowHiRA: Knowledge-aware Hadamard-integrated Rank Adaptation for Efficient Commonsense Reasoning},
-  author={Yi Cui and Yihe Pan and XuanYi Yang},
-  booktitle={International Conference on Learning Representations},
-  year={2025}
-}
-```
-
-## License
-
-This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
-
----
-
-**KnowHiRA represents a significant advancement in parameter-efficient fine-tuning, demonstrating that knowledge awareness and adaptation expressivity can be effectively combined for superior model adaptation.** 
