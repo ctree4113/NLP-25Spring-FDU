@@ -282,11 +282,11 @@ except Exception as e:
     echo ""
 done
 
-echo "✅ Full repaired version evaluation completed, success: $success_count/${#EVAL_TASKS[@]} tasks"
+echo "Full repaired version evaluation completed, success: $success_count/${#EVAL_TASKS[@]} tasks"
 
 # Display detailed result summary
 echo ""
-echo "📊 Full repaired version evaluation result summary:"
+echo "Full repaired version evaluation result summary:"
 echo "===================="
 
 # Create final quality check script
@@ -417,7 +417,7 @@ else:
 "
 
 echo ""
-echo "📁 Result file location: $CHECKPOINT"
+echo "Result file location: $CHECKPOINT"
 
 # Automatically run result analysis
 if [ -f "analyze_results.py" ]; then

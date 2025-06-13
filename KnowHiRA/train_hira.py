@@ -6,24 +6,21 @@ from dotenv import load_dotenv
 load_dotenv('.env')
 from tqdm import tqdm
 from transformers import AutoTokenizer, EarlyStoppingCallback
-
-from dataset.dataset_hg import HGDataset
-from dataset.format_inputs import TASK_TYPE, format_causal_input, gen_max_new_token_map, token_length_map, dataset_map, \
-    task_map
-
-
 from datetime import datetime
 import jsonlines
 import torch
 import transformers
 from pytictoc import TicToc
-from models.get_models import print_trainable_parameters, get_tokenizer, get_prefix_tuning_models, get_hira_models, get_fft_models
+
+from dataset.dataset_hg import HGDataset
+from dataset.format_inputs import TASK_TYPE, format_causal_input, gen_max_new_token_map, token_length_map, dataset_map, task_map
+from models.get_models_baseline import print_trainable_parameters, get_tokenizer, get_prefix_tuning_models, get_hira_models, get_layernorm_models, get_hira_models_ch, get_fft_models, get_lora_models, get_kasa_models, get_adapter_models, get_ia3_models
 import argparse
-from customized_trainer import customized_trainer
+from customized_trainer import customized_trainer_baseline
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--peft_type', type=str,
-                    choices=['prefix', 'hira', 'fft'])
+                    choices=['hira', 'fft', 'lora', 'kasa',"ia3"])
 parser.add_argument('--enable_grad_ckpt', action='store_true')
 parser.add_argument('--batch', type=int, default=32)
 parser.add_argument('--grad_acc', type=int, default=1)
@@ -64,6 +61,16 @@ parser.add_argument('--exp_name', default='', type=str)
 parser.add_argument('--decoding', type=str, default='default', choices=['default', 'greedy'])
 parser.add_argument('--save_total_limit', type=int, default=1)
 parser.add_argument('--early_stop_patience', type=int, default=0)
+parser.add_argument('--exclude_modules', type=str, default=None,
+                    help="List of modules (comma-separated) or regex pattern where LNTuning should not be applied")
+parser.add_argument('--modules_to_save', type=str, default=None,
+                    help="List of modules (comma-separated) to be saved separately")
+
+# Add new parameters for IA3 and adapter
+parser.add_argument('--adapter_size', type=int, default=64)  # Adapter bottleneck dimension
+
+
+
 COMPUTE_DS_LENGTH = False
 args = parser.parse_args()
 if args.compute_rank or args.compute_norm:
@@ -80,7 +87,7 @@ if args.ckpt is not None:
     if os.path.exists(output_path.format(args.ckpt, args.dataset)) and not (args.compute_rank or args.compute_norm):
         print(f"File exists, skipped.")
         exit(0)
-    print(f"Current ckpt args only supports inference!")
+    print(f"Current checkpoint args only support inference!")
     output_jsonl = os.path.join(args.ckpt, 'output.jsonl')
     if os.path.exists(output_jsonl):
         with jsonlines.open(output_jsonl) as reader:
@@ -160,10 +167,11 @@ if args.dataset_analysis:
     test_dataset.length_analysis(tokenizer_ds)
     exit(0)
 
+
 if peft_type == 'hira':
     init_a, init_b = args.init_ab.split(',')
-    model, tokenizer, model_config = get_hira_models(load_bit=args.load_bit,
-                                                     model_name=model_name, enable_checkpoint=args.enable_grad_ckpt,
+    model, tokenizer, model_config = get_hira_models_ch(load_bit=args.load_bit,
+                                                     model_name=model_name,  enable_checkpoint=args.enable_grad_ckpt,
                                                      r_ab=args.r_ab,target_modules=args.target_modules,
                                                      train_ab=args.train_ab,
                                                      rand_R=args.rand_R)
@@ -175,8 +183,55 @@ elif peft_type == 'prefix':
     model, tokenizer, model_config = get_prefix_tuning_models(load_bit=args.load_bit, model_name=model_name,
                                                               enable_checkpoint=args.enable_grad_ckpt,
                                                               virtual_tokens=args.virtual_tokens)
+
+
+elif peft_type == "lora":
+    model, tokenizer, model_config = get_lora_models(
+        model_name=model_name,
+        enable_checkpoint=args.enable_grad_ckpt,
+        load_bit=args.load_bit,
+        r=args.r_ab,  # Use unified r_ab parameter
+        target_modules=args.target_modules,
+        train_ab=args.train_ab  # Reuse training parameter control logic
+    )
+
+elif peft_type == "kasa":
+    model, tokenizer, model_config = get_kasa_models(
+        model_name=model_name,
+        enable_checkpoint=args.enable_grad_ckpt,
+        load_bit=args.load_bit,
+        rank=args.r_ab,  # Use r_ab as unified rank parameter
+        train_ab=args.train_ab
+    )
+
+elif peft_type == "layernorm":
+    model, tokenizer, model_config = get_layernorm_models(
+        model_name=model_name,
+        enable_checkpoint=args.enable_grad_ckpt,
+        load_bit=args.load_bit,
+        target_modules=args.target_modules,
+        exclude_modules=args.exclude_modules,
+        modules_to_save=args.modules_to_save
+    )
+elif peft_type == "adapter":
+    model, tokenizer, model_config = get_adapter_models(
+        model_name=model_name,
+        enable_checkpoint=args.enable_grad_ckpt,
+        load_bit=args.load_bit,
+        adapter_size=args.adapter_size
+    )
+
+elif peft_type == "ia3":
+    model, tokenizer, model_config = get_ia3_models(
+        model_name=args.model_name,
+        enable_checkpoint=args.enable_grad_ckpt,
+        load_bit=args.load_bit,
+        target_modules=[x.strip() for x in args.target_modules.split(",")]
+    )
 else:
     raise NotImplementedError('Not supported model!')
+
+
 trainable_params = print_trainable_parameters(model)
 
 
@@ -209,11 +264,7 @@ if COMPUTE_DS_LENGTH:
     all_data_ids = tokenizer_right(all_data)
     all_data_len = [len(a) for a in all_data_ids['input_ids']]
     all_data_len = torch.tensor(all_data_len, dtype=torch.float)
-    print(f"""
-        AVG: {all_data_len.mean()}
-        MAX: {all_data_len.max()}
-        MIN: {all_data_len.min()}
-    """)
+    print(f"Dataset length stats - AVG: {all_data_len.mean():.1f}, MAX: {all_data_len.max():.0f}, MIN: {all_data_len.min():.0f}")
 
 test_steps = 0
 
@@ -256,7 +307,7 @@ if args.early_stop_patience > 0:
 eval_bz = max(1, int(args.batch / 4))
 if dataset_name == 'common_170k':
     eval_bz = args.batch
-trainer_class = customized_trainer.Seq2SeqTrainer
+trainer_class = customized_trainer_baseline.Seq2SeqTrainer
 trainer_args = transformers.Seq2SeqTrainingArguments(
     deepspeed=args.ds_config,
     local_rank=args.local_rank,
@@ -294,7 +345,7 @@ trainer_args = transformers.Seq2SeqTrainingArguments(
     load_best_model_at_end=True,
     predict_with_generate=True,
 )
-trainer = customized_trainer.Seq2SeqTrainer(
+trainer = customized_trainer_baseline.Seq2SeqTrainer(
     model=model,
     train_dataset=train_dataset,
     eval_dataset=valid_dataset,
@@ -302,7 +353,7 @@ trainer = customized_trainer.Seq2SeqTrainer(
     args=trainer_args,
     data_collator=data_collator_e2e
 )
-if args.ckpt is not None:
+if args.ckpt is not None:  # If --ckpt is specified, load checkpoint for inference; otherwise train. This is the key to distinguish train and test
     trainer._load_best_model(order=args.load_order)
     train_seconds = -1
 
@@ -335,7 +386,7 @@ elif dataset_name == 'common_all':
     beam = 4
     eval_result = {}
     for _dataset_name in ['boolq', 'piqa', 'siqa', 'hellas', 'winog', 'arce', 'arcc', 'obqa']:
-        print(f'decoding {dataset_name}')
+        print(f'decoding {_dataset_name}')
         test_dataset = HGDataset(dataset_map[_dataset_name], 'test', task_map[_dataset_name],
                                  training_ratio=args.dataset_ratio)
         _output_path = output_path.replace(dataset_name, _dataset_name)
@@ -356,7 +407,6 @@ elif dataset_name == 'common_all':
                                        # length_penalty=0.9, no_repeat_ngram_size=4
                                        )
         eval_result[_output_path] = _eval_result
-#
 elif dataset_name in ['mmlu']:
     eval_results = []
     pbar = tqdm(test_dataset)
@@ -388,7 +438,7 @@ elif dataset_name in ['mmlu']:
             context.append(row['input'])
             text_result.append(prob_pred)
             ground_truth.append(answer)
-    print(f'ACC: {acc * 100}')
+    print(f'Final ACC: {acc * 100:.2f}%')
     with jsonlines.open(output_path, mode='w') as writer:
         writer.write(args_dict)
         writer.write(model_config.to_dict())

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-KnowHiRA评估结果分析脚本
+KnowHiRA Evaluation Results Analysis Script
 """
 
 import json
@@ -11,40 +11,40 @@ from pathlib import Path
 import argparse
 
 def find_latest_checkpoint(path):
-    """查找最新的检查点目录"""
+    """Find the latest checkpoint directory"""
     pattern = os.path.join(path, "gpt-neo*")
     checkpoints = glob.glob(pattern)
     if not checkpoints:
-        print("未找到检查点目录")
+        print("No checkpoint directory found")
         return None
     
-    latest = sorted(checkpoints)[-1]  # 最新的检查点
-    print(f"分析检查点: {latest}")
+    latest = sorted(checkpoints)[-1]  # Latest checkpoint
+    print(f"Analyzing checkpoint: {latest}")
     return latest
 
 def extract_answer(dataset, sentence):
-    """针对每个数据集特定格式的答案提取函数"""
+    """Answer extraction function specific to each dataset format"""
     import re
     sentence_ = sentence.strip().lower()
     
     if dataset == 'boolq':
-        # boolq: GT是 "true"/"false"
+        # boolq: GT is "true"/"false"
         pred_answers = re.findall(r'(true|false)', sentence_)
         if not pred_answers:
             return ""
         return pred_answers[0]
     
     elif dataset in ['piqa', 'siqa', 'arcc', 'arce', 'obqa', 'hellas', 'winog']:
-        # 这些数据集: GT是 "solution1"/"solution2"等
+        # These datasets: GT is "solution1"/"solution2" etc.
         pred_answers = re.findall(r'\d', sentence_)
         if not pred_answers:
             return ""
         return f"solution{pred_answers[0]}"
     
     elif dataset == 'common_170k':
-        # commonsense_170k: GT是 "the correct answer is true"等完整句子
+        # commonsense_170k: GT is complete sentences like "the correct answer is true"
         
-        # 尝试提取"the correct answer is X"，X可能是各种格式
+        # Try to extract "the correct answer is X", where X can be in various formats
         patterns = [
             r'the correct answer is\s+(true|false)(?:\s|$)',
             r'the correct answer is\s+(answer[1-5])(?:\s|$)',
@@ -58,27 +58,27 @@ def extract_answer(dataset, sentence):
             if match:
                 return f"the correct answer is {match.group(1)}"
         
-        # 检查是否包含true/false
+        # Check if contains true/false
         if re.search(r'\b(true|false)\b', sentence_):
             bool_answer = re.findall(r'\b(true|false)\b', sentence_)[0]
             return f"the correct answer is {bool_answer}"
         
-        # 检查是否包含answer1-5
+        # Check if contains answer1-5
         answer_match = re.findall(r'answer([1-5])', sentence_)
         if answer_match:
             return f"the correct answer is answer{answer_match[0]}"
         
-        # 检查是否包含option1-2
+        # Check if contains option1-2
         option_match = re.findall(r'option([1-2])', sentence_)
         if option_match:
             return f"the correct answer is option{option_match[0]}"
         
-        # 检查是否包含ending1-4
+        # Check if contains ending1-4
         ending_match = re.findall(r'ending([1-4])', sentence_)
         if ending_match:
             return f"the correct answer is ending{ending_match[0]}"
         
-        # 检查是否包含solution1-2
+        # Check if contains solution1-2
         solution_match = re.findall(r'solution([1-2])', sentence_)
         if solution_match:
             return f"the correct answer is solution{solution_match[0]}"
@@ -88,7 +88,7 @@ def extract_answer(dataset, sentence):
     return ""
 
 def analyze_task_result(result_file, task_name):
-    """分析单个任务的结果"""
+    """Analyze results for a single task"""
     if not os.path.exists(result_file):
         return None
     
@@ -96,7 +96,7 @@ def analyze_task_result(result_file, task_name):
         with jsonlines.open(result_file, 'r') as reader:
             data = list(reader)
         
-        # 跳过配置信息，处理预测结果
+        # Skip configuration info, process prediction results
         predictions = []
         ground_truths = []
         
@@ -108,13 +108,13 @@ def analyze_task_result(result_file, task_name):
         if not predictions:
             return None
         
-        # 使用与baseline一致的答案提取逻辑计算准确率
+        # Use the same answer extraction logic as baseline to calculate accuracy
         correct = 0
         valid_predictions = 0
         total = len(predictions)
         
         for pred, gt in zip(predictions, ground_truths):
-            # 提取预测答案和真实答案
+            # Extract predicted answer and ground truth answer
             extracted_pred = extract_answer(task_name, pred)
             extracted_gt = extract_answer(task_name, gt)
             
@@ -135,27 +135,27 @@ def analyze_task_result(result_file, task_name):
         }
     
     except Exception as e:
-        print(f"⚠️  处理 {task_name} 时出错: {e}")
+        print(f"⚠️  Error processing {task_name}: {e}")
         return None
 
 def main():
     print("=" * 50)
-    print("评估结果分析")
+    print("Evaluation Results Analysis")
     print("=" * 50)
 
-    parser = argparse.ArgumentParser(description="评估结果分析脚本")
+    parser = argparse.ArgumentParser(description="Evaluation results analysis script")
     parser.add_argument(
     "--checkpoint_path",
     type=str,
-    default="results_hira",  # 默认路径
-    help="检查点目录的父级路径"
+    default="results_hira",  # Default path
+    help="Parent directory path of checkpoint directory"
 )
     args = parser.parse_args()
     checkpoint_dir = find_latest_checkpoint(args.checkpoint_path)
     if not checkpoint_dir:
         return
     
-    # 任务列表
+    # Task list
     tasks = [
         ('boolq', 'BoolQ'),
         ('piqa', 'PIQA'),
@@ -172,21 +172,21 @@ def main():
     total_accuracy = 0
     completed_tasks = 0
     
-    print("\n各任务结果:")
+    print("\nResults for each task:")
     print("-" * 50)
     
     for task_id, task_name in tasks:
-        # 原始代码（检查 maxT=16 和 maxT=8）
+        # Original code (check maxT=16 and maxT=8)
         # result_file_fixed = os.path.join(checkpoint_dir, f"output_-1_{task_id}_maxT=16_eval.jsonl")
         # result_file_original = os.path.join(checkpoint_dir, f"output_-1_{task_id}_maxT=8_eval.jsonl")
         
-        # 修改后：直接使用 beam=8
+        # Modified: directly use beam=8
         result_file = os.path.join(checkpoint_dir, f"output_-1_{task_id}_beam=8_eval.jsonl")
         
         if os.path.exists(result_file):
             result = analyze_task_result(result_file, task_id)
         else:
-            print(f"{task_name:20s}: 结果文件不存在（{result_file}）")
+            print(f"{task_name:20s}: Result file does not exist ({result_file})")
             continue
             
         result = analyze_task_result(result_file, task_id)
@@ -195,19 +195,19 @@ def main():
             results[task_id] = result
             total_accuracy += result['accuracy']
             completed_tasks += 1
-            print(f"{task_name:20s}: {result['accuracy']:6.2f}% ({result['correct']:4d}/{result['total']:4d}) [有效率: {result['valid_rate']:5.1f}%]")
+            print(f"{task_name:20s}: {result['accuracy']:6.2f}% ({result['correct']:4d}/{result['total']:4d}) [Valid rate: {result['valid_rate']:5.1f}%]")
         else:
-            print(f"{task_name:20s}: 未完成或结果文件不存在")
+            print(f"{task_name:20s}: Not completed or result file does not exist")
     
     print("-" * 50)
     
     if completed_tasks > 0:
         avg_accuracy = total_accuracy / completed_tasks
-        print(f"平均准确率: {avg_accuracy:.2f}% (基于 {completed_tasks} 个已完成任务)")
+        print(f"Average accuracy: {avg_accuracy:.2f}% (based on {completed_tasks} completed tasks)")
     else:
-        print("没有完成的评估任务")
+        print("No completed evaluation tasks")
     
-    # 保存结果摘要
+    # Save result summary
     summary_file = os.path.join(checkpoint_dir, "evaluation_summary.json")
     summary = {
         'checkpoint': checkpoint_dir,
@@ -220,7 +220,7 @@ def main():
     with open(summary_file, 'w', encoding='utf-8') as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
     
-    print(f"\n详细结果已保存到: {summary_file}")
+    print(f"\nDetailed results saved to: {summary_file}")
 
 if __name__ == "__main__":
     main() 
